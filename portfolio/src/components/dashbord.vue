@@ -82,21 +82,23 @@
       <thead>
             <tr>
                 <th>Nom de l'information</th>
+                <th>Description</th>
                 <th>Date de début</th>
                 <th>Date de fin</th>
                 <th>Action</th>
             </tr>
         </thead>
         <tbody>
-            <tr>
-                <td>nabil</td>
-                <td>2023</td>
-                <td>2025</td>
-                <td>
-                    <a href="" style="margin-right: 1em;">Modifier</a>
-                    <a href="" style="color: red;">Supprimer</a>
-                </td>
-            </tr>
+          <tr v-for="frm in formation" :key="frm._id">
+              <td>{{ frm.nom }}</td>
+              <td>{{ frm.description }}</td>
+              <td>{{ frm.start }}</td>
+              <td>{{ frm.end }}</td>
+              <td>
+                  <a href="" style="margin-right: 1em;">Modifier</a>
+                  <p style="color: red; cursor: pointer" @click="deleteformation(frm._id)">Supprimer</p>
+              </td>
+          </tr>
         </tbody>
     </table>
     <h3 class="titre">Langues</h3>
@@ -117,7 +119,7 @@
               
                 <td>
                     <a href="" style="margin-right: 1em;">Modifier</a>
-                    <a href="" style="color: red;">Supprimer</a>
+                    <p style="color: red;">Supprimer</p>
                 </td>
             </tr>
         </tbody>
@@ -173,40 +175,39 @@
 
 
 <div class="modal fade" id="addform" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-       <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="exampleModalLabel">Ajouter un formation</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <form>
-          <div class="mb-3">
-            <label for="experienceName" class="form-label">Nom de formation</label>
-            <input type="text" class="form-control" id="experienceName" placeholder="Nom de  formation">
-          </div>
-          <div class="mb-3">
-            <label for="experienceName" class="form-label">Description</label>
-            <textarea type="text" class="form-control" id="experienceName" placeholder="Description..."></textarea>
-          </div>
-          <div class="mb-3">
-            <label for="startDate" class="form-label">Date de début</label>
-            <input type="date" class="form-control" id="startDate">
-          </div>
-          <div class="mb-3">
-            <label for="endDate" class="form-label">Date de fin</label>
-            <input type="date" class="form-control" id="endDate">
-          </div>
-        </form>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
-        <button type="button" class="btn btn-primary">Sauvegarder</button>
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Ajouter une formation</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form @submit.prevent="addformation">
+            <div class="mb-3">
+              <label for="experienceName" class="form-label">Nom de la formation</label>
+              <input type="text" class="form-control" v-model="newFormation.nom" id="experienceName" placeholder="Nom de la formation">
+            </div>
+            <div class="mb-3">
+              <label for="experienceDescription" class="form-label">Description</label>
+              <textarea class="form-control" v-model="newFormation.description" id="experienceDescription" placeholder="Description..."></textarea>
+            </div>
+            <div class="mb-3">
+              <label for="startDate" class="form-label">Date de début</label>
+              <input type="date" class="form-control" v-model="newFormation.start" id="startDate">
+            </div>
+            <div class="mb-3">
+              <label for="endDate" class="form-label">Date de fin</label>
+              <input type="date" class="form-control" v-model="newFormation.end" id="endDate">
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+              <button type="submit" class="btn btn-primary">Sauvegarder</button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   </div>
-</div>
-
 
 
 <div class="modal fade" id="addlangue" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -264,6 +265,8 @@
 </template>
 <script>
 import axios from "axios";
+import Swal from 'sweetalert2';
+
 
 export default {
   name: 'dashboard',
@@ -280,19 +283,37 @@ export default {
         pay: '',
         objct: ''
       },
+
       imageUrl: '' 
+      ,
+      formation :{
+        nom: '',
+        description: '',
+        start: '',
+        end: ''
+      },
+      
+      newFormation: {
+        nom: '',
+        description: '',
+        start: '',
+        end: ''
+      }
     };
   },
 
-  created() {
+  mounted() {
 
     if (!localStorage.getItem('token')) {
  
       this.$router.push('/');
     } else {
-
       this.getinfo();
+      this.getformations()
+      
+
     }
+
   },
 
   methods: {
@@ -313,6 +334,7 @@ export default {
         }
       })
         .then(res => {
+          
           this.info = res.data;
           console.log(this.info);
         })
@@ -321,6 +343,59 @@ export default {
         });
     },
 
+    getformations() {
+      axios.get('http://127.0.0.1:8000/api/getformations', {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}` 
+        }
+      })
+        .then(res => {
+          this.formation = res.data.Formations; 
+
+          console.log(this.formation);
+        })
+
+        .catch(error => {
+          console.error('Error getting user formations:', error);
+        });
+    },
+    addformation() {
+      axios.post('http://127.0.0.1:8000/api/storeformation', this.newFormation, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}` 
+        }
+      })
+        .then(res => {
+          console.log('Data updated successfully:', res.data);
+          this.modalsuccess('Formation', 'La Formation ajoute Avec Succès');
+
+          this.getformations()
+        })
+        .catch(error => {
+          console.error('Error updating user info:', error);
+        });
+    },
+    deleteformation(id) {
+      console.log("ID de la formation à supprimer:", id);
+      this.deleteModal().then((result) => {
+          if (result.isConfirmed) {
+              axios.get('http://127.0.0.1:8000/api/deleteformation/' + id, {
+                  headers: {
+                      Authorization: `Bearer ${localStorage.getItem('token')}`
+                  }
+              })
+              .then(res => {
+                  console.log('Formation supprimée avec succès:', res.data);
+                  this.modalsuccess('Supprimer La formation', 'Avec Succès');
+                  this.getformations();
+              })
+              .catch(error => {
+                  console.error('Erreur lors de la suppression de la formation:', error);
+              });
+          }
+    });
+}
+,
     updateinfo() {
       axios.post('http://127.0.0.1:8000/api/updateinfo', this.info, {
         headers: {
@@ -329,12 +404,15 @@ export default {
       })
         .then(res => {
           console.log('Data updated successfully:', res.data);
+          this.modalsuccess('Information', 'Les information a modifier Avec Succès');
+
         })
         .catch(error => {
           console.error('Error updating user info:', error);
         });
     },
 
+    
     handleFileUpload(event) {
       if (event.target.files.length > 0) {
         const file = event.target.files[0];
@@ -349,6 +427,8 @@ export default {
           .then(response => {
             this.imageUrl = response.data.image_url;
             console.log('Image uploaded successfully');
+          this.modalsuccess("L'image'" , "L'image a ete modifier Avec Succès");
+
 
             this.getinfo();
           })
@@ -358,8 +438,30 @@ export default {
       }
     },
     
+    modalsuccess(title , text){
+      Swal.fire({
+        title: title,
+        text: text,
+        icon: "success"
+    });
+    },
+    deleteModal() {
+    return Swal.fire({
+        title: 'Êtes-vous sûr?',
+        text: "Vous ne pourrez pas annuler cette action!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Oui, supprimer!'
+    });
+}
+
   }
 };
+
+
+
 </script>
 
 
@@ -369,7 +471,6 @@ export default {
 .modal-header{
   color :black;
 }
-
 
 .titre{
   width: 100%;

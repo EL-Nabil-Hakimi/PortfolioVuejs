@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\FormationController;
 use App\Http\Controllers\InfoController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
@@ -27,8 +28,15 @@ Route::middleware(['checkToken'])->group(function () {
 
             Route::get('/getinfo', 'getinfo');
             Route::post('/updateinfo', 'update');
-            Route::post('/updateimage', 'updateimage'); 
-        
+            Route::post('/updateimage', 'updateimage');         
+    });
+    Route::controller(FormationController::class)->group(function(){
+
+            Route::get('/getformations', 'index');
+            Route::post('/storeformation', 'store');
+            Route::post('/updateformation', 'update');
+            Route::get('/deleteformation/{id}', 'destroy');
+                  
     });
 
 });

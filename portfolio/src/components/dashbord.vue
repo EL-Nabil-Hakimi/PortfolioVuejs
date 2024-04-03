@@ -95,7 +95,7 @@
               <td>{{ frm.start }}</td>
               <td>{{ frm.end }}</td>
               <td>
-                  <a href="" style="margin-right: 1em;">Modifier</a>
+                  <a href="" style="margin-right: 1em;" data-bs-toggle="modal" data-bs-target="#updateform" @click="inputformation(frm._id ,frm.nom, frm.description,frm.start,frm.end)">Modifier</a>
                   <p style="color: red; cursor: pointer" @click="deleteformation(frm._id)">Supprimer</p>
               </td>
           </tr>
@@ -209,6 +209,43 @@
     </div>
   </div>
 
+  <div class="modal fade" id="updateform" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Modufier une formation</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form @submit.prevent="updateformation">
+            <div class="mb-3">
+              <label for="experienceName" class="form-label">Nom de la formation</label>
+              <input type="hidden"  id="for_id" name="id" placeholder="Nom de la formation">
+              <input type="text" class="form-control"  id="for_nom" name="nom" placeholder="Nom de la formation">
+            </div>
+            <div class="mb-3">
+              <label for="experienceDescription" class="form-label">Description</label>
+              <textarea class="form-control"  id="for_description" name="description" placeholder="Description..."></textarea>
+            </div>
+            <div class="mb-3">
+              <label for="startDate" class="form-label">Date de début</label>
+              <input type="date" class="form-control"  name="start" id="for_start">
+            </div>
+            <div class="mb-3">
+              <label for="endDate" class="form-label">Date de fin</label>
+              <input type="date" class="form-control"  name="end" id="for_end">
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+              <button type="submit" class="btn btn-primary">Modifier</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
 
 <div class="modal fade" id="addlangue" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
        <div class="modal-dialog">
@@ -218,7 +255,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <form>
+        <form >
           <div class="mb-3">
             <label for="experienceName" class="form-label">Nom de la langue</label>
             <input type="text" class="form-control" name="langue"id="experienceName" placeholder="Nom de la langue">
@@ -298,6 +335,12 @@ export default {
         description: '',
         start: '',
         end: ''
+      },
+      newFormationup: {
+        nom: '',
+        description: '',
+        start: '',
+        end: ''
       }
     };
   },
@@ -308,24 +351,33 @@ export default {
  
       this.$router.push('/');
     } else {
-      this.getinfo();
+      this.getinfo(); 
       this.getformations()
-      
-
+      this.modalsuccess("Bienvenue de retour, Hakimi")
     }
 
   },
 
   methods: {
     logout() {
-      if (confirm('Are you sure you want to log out?')) {
-        
-        localStorage.removeItem('token');
-        this.$router.push('/');
-      } else {
-        this.$router.push('dashboard');
-      }
-    },
+    Swal.fire({
+        title: 'Êtes-vous sûr?',
+        text: 'Voulez-vous vous déconnecter?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Oui, déconnectez-vous'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            localStorage.removeItem('token');
+            this.$router.push('/');
+        } else {
+            this.$router.push('dashboard');
+        }
+    });
+},
+
 
     getinfo() {
       axios.get('http://127.0.0.1:8000/api/getinfo', {
@@ -367,7 +419,7 @@ export default {
       })
         .then(res => {
           console.log('Data updated successfully:', res.data);
-          this.modalsuccess('Formation', 'La Formation ajoute Avec Succès');
+          this.modalsuccess('La Formation a ete ajoute Avec Succès');
 
           this.getformations()
         })
@@ -404,7 +456,7 @@ export default {
       })
         .then(res => {
           console.log('Data updated successfully:', res.data);
-          this.modalsuccess('Information', 'Les information a modifier Avec Succès');
+          this.modalsuccess('Les information a ete modifier Avec Succès');
 
         })
         .catch(error => {
@@ -427,7 +479,7 @@ export default {
           .then(response => {
             this.imageUrl = response.data.image_url;
             console.log('Image uploaded successfully');
-          this.modalsuccess("L'image'" , "L'image a ete modifier Avec Succès");
+          this.modalsuccess("L'image a ete modifier Avec Succès'" );
 
 
             this.getinfo();
@@ -438,10 +490,9 @@ export default {
       }
     },
     
-    modalsuccess(title , text){
+    modalsuccess(title){
       Swal.fire({
         title: title,
-        text: text,
         icon: "success"
     });
     },
@@ -453,12 +504,44 @@ export default {
         showCancelButton: true,
         confirmButtonColor: '#3085d6',
         cancelButtonColor: '#d33',
-        confirmButtonText: 'Oui, supprimer!'
+        confirmButtonText: 'Oui je suis sûr,!'
     });
-}
+},
+  inputformation(id ,nom, description,start,end){
+        document.getElementById('for_id').value = id;
+        document.getElementById('for_nom').value = nom;
+        document.getElementById('for_description').value = description;
+        document.getElementById('for_start').value = start;
+        document.getElementById('for_end').value = end;
+  } ,
+  updateformation() {
 
-  }
-};
+  var id = document.getElementById('for_id').value;
+  var nom = document.getElementById('for_nom').value;
+  var description = document.getElementById('for_description').value;
+  var start = document.getElementById('for_start').value;
+  var end = document.getElementById('for_end').value;
+
+  this.newFormation = { id, nom, description, start, end };
+
+  axios.post('http://127.0.0.1:8000/api/updateformation', this.newFormation, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem('token')}`
+    }
+  })
+  .then(res => {
+    console.log('Formation updated successfully:', res.data);
+    this.modalsuccess('La formation a été mise à jour avec succès');
+    this.getformations();
+    this.newFormation = {};
+
+  })
+  .catch(error => {
+    console.error('Error updating formation:', error);
+  });
+}
+  } 
+}  
 
 
 

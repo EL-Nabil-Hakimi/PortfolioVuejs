@@ -34,7 +34,7 @@ Route::middleware(['checkToken'])->group(function () {
 
             Route::get('/getformations', 'index');
             Route::post('/storeformation', 'store');
-            Route::post('/updateformation', 'update');
+            Route::post('/updateformation' , 'update');
             Route::get('/deleteformation/{id}', 'destroy');
                   
     });
